@@ -137,7 +137,7 @@ async function handle(req, res) {
   const method = req.method || 'GET'
 
   if (path === '/api/health') {
-    json(res, 200, { ok: true, dataDir: getDataDir() })
+    json(res, 200, { ok: true })
     return
   }
 

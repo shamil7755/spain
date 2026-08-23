@@ -147,6 +147,7 @@ async function handleMessage(msg) {
     case '/revoke':
       return handleRevoke(msg, arg)
     case '/test':
+      if (!isAdmin(msg.chat.id)) return
       return sendMessage(msg.chat.id, 'Диагностическая страница:', {
         reply_markup: {
           inline_keyboard: [[{ text: 'Открыть проверку', web_app: { url: `${APP_URL}/test.html` } }]],
