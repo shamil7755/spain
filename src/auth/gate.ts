@@ -21,7 +21,7 @@ function telegram(): TelegramWebApp | null {
   return (window as unknown as { Telegram?: { WebApp?: TelegramWebApp } }).Telegram?.WebApp ?? null
 }
 
-const BOT_LINK = import.meta.env.VITE_BOT_LINK ?? 'https://t.me/'
+const BOT_LINK = import.meta.env.VITE_BOT_LINK ?? 'https://t.me/spainlearning_bot'
 
 export type Session = { user: AuthUser | null; offline: boolean }
 
