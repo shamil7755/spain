@@ -1,0 +1,30 @@
+:root {
+  color-scheme: light dark;
+  --font-sans: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --color-bg: #0f1115;
+  --color-surface: #171a21;
+  --color-surface-raised: #1e222b;
+  --color-border: #2a2f3a;
+  --color-text: #e8eaef;
+  --color-text-muted: #9aa3b2;
+  --color-accent: #6c9eff;
+  --color-accent-soft: rgba(108, 158, 255, 0.18);
+  --nav-height: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --radius: 14px;
+  --shadow-nav: 0 -4px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #f4f5f8;
+    --color-surface: #ffffff;
+    --color-surface-raised: #f0f2f6;
+    --color-border: #dde1ea;
+    --color-text: #1a1d24;
+    --color-text-muted: #5c6474;
+    --color-accent: #2563eb;
+    --color-accent-soft: rgba(37, 99, 235, 0.12);
+    --shadow-nav: 0 -2px 16px rgba(15, 23, 42, 0.08);
+  }
+}
