@@ -1,4 +1,6 @@
 .auth-screen {
+  /* dvh не знают старые WebView — vh остаётся запасным вариантом */
+  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;

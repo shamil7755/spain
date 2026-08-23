@@ -8,6 +8,32 @@
     <meta name="description" content="Мнемонические карточки для изучения слов" />
     <title>Карточки слов</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+      // Временная диагностика: показывает ошибку запуска на экране,
+      // потому что в WebView Telegram консоль недоступна.
+      (function () {
+        function show(label, detail) {
+          var host = document.getElementById('app')
+          if (!host) return
+          var box = document.createElement('pre')
+          box.style.cssText =
+            'white-space:pre-wrap;word-break:break-word;padding:16px;margin:0;' +
+            'font:12px/1.5 ui-monospace,monospace;color:#ffb4b4;background:#0f1115;min-height:100vh'
+          box.textContent = label + '
+
+' + detail
+          host.replaceChildren(box)
+        }
+        window.addEventListener('error', function (e) {
+          show('Ошибка загрузки', (e.message || '?') + '
+' + (e.filename || '') + ':' + (e.lineno || '?'))
+        })
+        window.addEventListener('unhandledrejection', function (e) {
+          var r = e.reason
+          show('Ошибка (promise)', (r && (r.stack || r.message)) || String(r))
+        })
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>
