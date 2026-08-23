@@ -45,15 +45,15 @@ git push -u origin main
 ## Шаг 2. Новый поддомен DuckDNS
 
 1. Зайти на https://www.duckdns.org, залогиниться (тем же аккаунтом, что для `erg234wefbot`).
-2. В поле "sub domain" ввести новое имя, например `mnemo-cards` → получится `mnemo-cards.duckdns.org`.
+2. В поле "sub domain" ввести `spainlearn123` → получится `spainlearn123.duckdns.org`.
 3. Нажать **add domain**. IP подставить тот же, что у сервера с Hyper (тот, что уже стоит у `erg234wefbot`).
-4. Обновление IP на сервере обычно делается тем же cron/скриптом, что уже поддерживает `erg234wefbot.duckdns.org` — надо просто добавить туда второй домен через `&` в URL обновления DuckDNS:
+4. Обновление IP на сервере обычно делается тем же cron/скриптом, что уже поддерживает `erg234wefbot.duckdns.org` — надо просто добавить туда второй домен через запятую в URL обновления DuckDNS:
 
 ```
-https://www.duckdns.org/update?domains=erg234wefbot,mnemo-cards&token=<твой_token>&ip=
+https://www.duckdns.org/update?domains=erg234wefbot,spainlearn123&token=<твой_token>&ip=
 ```
 
-Проверить, где сейчас лежит этот update-скрипт на сервере (обычно `crontab -l` покажет строку с `curl ... duckdns.org/update`), и дописать туда `mnemo-cards` через запятую.
+Проверить, где сейчас лежит этот update-скрипт на сервере (обычно `crontab -l` покажет строку с `curl ... duckdns.org/update`), и дописать туда `spainlearn123` через запятую.
 
 ---
 
@@ -63,15 +63,15 @@ https://www.duckdns.org/update?domains=erg234wefbot,mnemo-cards&token=<твой_
 
 ```bash
 ssh <user>@<server-ip>
-sudo mkdir -p /opt/mnemo-miniapp
-sudo chown $USER:$USER /opt/mnemo-miniapp
+sudo mkdir -p /mnt/different-project/mnemo-miniapp
+sudo chown $USER:$USER /mnt/different-project/mnemo-miniapp
 ```
 
 С локальной машины склонировать репозиторий прямо на сервер (или через git clone на сервере):
 
 ```bash
 # на сервере
-cd /opt/mnemo-miniapp
+cd /mnt/different-project/mnemo-miniapp
 git clone https://github.com/<твой_логин>/mnemo-miniapp.git .
 ```
 
@@ -86,7 +86,7 @@ git clone https://github.com/<твой_логин>/mnemo-miniapp.git .
 Создать конфиг:
 
 ```bash
-sudo nano /etc/nginx/sites-available/mnemo-cards
+sudo nano /etc/nginx/sites-available/spainlearn123
 ```
 
 Содержимое (сначала БЕЗ ssl-строк — сертификата пока нет):
@@ -94,9 +94,9 @@ sudo nano /etc/nginx/sites-available/mnemo-cards
 ```nginx
 server {
     listen 80;
-    server_name mnemo-cards.duckdns.org;
+    server_name spainlearn123.duckdns.org;
 
-    root /opt/mnemo-miniapp;
+    root /mnt/different-project/mnemo-miniapp;
     index index.html;
 
     location / {
@@ -108,19 +108,19 @@ server {
 Включить сайт и перезапустить nginx:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/mnemo-cards /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/spainlearn123 /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Проверить, что `http://mnemo-cards.duckdns.org` уже отдаёт страницу (DNS у DuckDNS обновляется быстро, обычно сразу).
+Проверить, что `http://spainlearn123.duckdns.org` уже отдаёт страницу (DNS у DuckDNS обновляется быстро, обычно сразу).
 
 ### Получить TLS-сертификат
 
 По памяти о прошлых проблемах с сертификатом на Hyper: certbot standalone конфликтует с уже работающим nginx на порту 80. Правильный путь — **certbot с nginx-плагином**, он сам временно освобождает порт через сам nginx, а не убивает его:
 
 ```bash
-sudo certbot --nginx -d mnemo-cards.duckdns.org
+sudo certbot --nginx -d spainlearn123.duckdns.org
 ```
 
 Certbot сам допишет `listen 443 ssl` и пути к сертификатам в конфиг, плюс предложит редирект с 80 на 443 — соглашаться.
@@ -140,7 +140,7 @@ sudo certbot renew --dry-run
 2. Если под этот мини-апп нужен отдельный бот — `/newbot`, задать имя и username.
    Если вешаем мини-апп на существующего бота (например, тот же, что для Hyper) — пропустить этот пункт.
 3. `/mybots` → выбрать бота → **Bot Settings** → **Menu Button** → **Configure Menu Button**.
-4. Ввести URL: `https://mnemo-cards.duckdns.org`
+4. Ввести URL: `https://spainlearn123.duckdns.org`
 5. Ввести текст кнопки, например `📚 Карточки`.
 
 Готово — у бота в чате появится кнопка, открывающая мини-апп на весь экран Telegram.
@@ -174,7 +174,7 @@ git push
 На сервере:
 
 ```bash
-cd /opt/mnemo-miniapp && git pull
+cd /mnt/different-project/mnemo-miniapp && git pull
 ```
 
 Обновление видно сразу — сервер отдаёт статику напрямую из папки, кэш чистить не надо (кроме кэша самого Telegram WebView — иногда помогает закрыть и заново открыть мини-апп).
