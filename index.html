@@ -12,51 +12,51 @@
       // Временная диагностика: в WebView Telegram консоль недоступна,
       // поэтому состояние запуска и ошибки выводятся прямо на страницу.
       (function () {
-        var log = []
+        var log = [];
+        var NL = String.fromCharCode(10);
 
         function paint() {
-          var host = document.getElementById('app')
-          if (!host) return
-          var box = document.createElement('pre')
+          var host = document.getElementById('app');
+          if (!host) return;
+          var box = document.createElement('pre');
           box.style.cssText =
             'white-space:pre-wrap;word-break:break-word;padding:16px;margin:0;' +
-            'font:12px/1.5 ui-monospace,monospace;color:#ffb4b4;background:#0f1115;min-height:100vh'
-          box.textContent = log.join('
-')
-          host.replaceChildren(box)
+            'font:12px/1.5 ui-monospace,monospace;color:#ffb4b4;background:#0f1115;min-height:100vh';
+          box.textContent = log.join(NL);
+          host.replaceChildren(box);
         }
 
         function note(line) {
-          log.push(line)
-          paint()
+          log.push(line);
+          paint();
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-          note('HTML загружен, ждём модуль приложения…')
-          note('UA: ' + navigator.userAgent)
-          var tg = window.Telegram && window.Telegram.WebApp
-          note('Telegram SDK: ' + (tg ? 'есть' : 'НЕТ'))
-          note('initData: ' + (tg && tg.initData ? 'есть (' + tg.initData.length + ' симв.)' : 'пусто'))
-        })
+          note('HTML загружен, ждём модуль приложения...');
+          note('UA: ' + navigator.userAgent);
+          var tg = window.Telegram && window.Telegram.WebApp;
+          note('Telegram SDK: ' + (tg ? 'есть' : 'НЕТ'));
+          note('initData: ' + (tg && tg.initData ? 'есть (' + tg.initData.length + ' симв.)' : 'пусто'));
+        });
 
         // true — ловим и ошибки загрузки файлов: они не всплывают до window.
         window.addEventListener(
           'error',
           function (e) {
             if (e.target && e.target !== window && e.target.src) {
-              note('НЕ ЗАГРУЗИЛСЯ ФАЙЛ: ' + e.target.src)
+              note('НЕ ЗАГРУЗИЛСЯ ФАЙЛ: ' + e.target.src);
             } else {
-              note('ОШИБКА: ' + (e.message || '?') + ' @ ' + (e.filename || '') + ':' + (e.lineno || '?'))
+              note('ОШИБКА: ' + (e.message || '?') + ' @ ' + (e.filename || '') + ':' + (e.lineno || '?'));
             }
           },
-          true,
-        )
+          true
+        );
 
         window.addEventListener('unhandledrejection', function (e) {
-          var r = e.reason
-          note('ОШИБКА (promise): ' + ((r && (r.stack || r.message)) || String(r)))
-        })
-      })()
+          var r = e.reason;
+          note('ОШИБКА (promise): ' + ((r && (r.stack || r.message)) || String(r)));
+        });
+      })();
     </script>
   </head>
   <body>
