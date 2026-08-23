@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mnemo Cards — Испанский</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --text: var(--tg-theme-text-color, #111111);
+    --hint: var(--tg-theme-hint-color, #999999);
+    --btn: var(--tg-theme-button-color, #2481cc);
+    --btn-text: var(--tg-theme-button-text-color, #ffffff);
+    --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  header {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: var(--hint);
+  }
+  main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .card {
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 1 / 1;
+    background: var(--secondary-bg);
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card-image {
+    flex: 0 0 70%;
+    background: linear-gradient(135deg, #6ec6ff, #2481cc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    color: #fff;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .card-text {
+    flex: 0 0 30%;
+    background: #ffffff;
+    color: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    text-align: center;
+  }
+  .card-word {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .card-translation {
+    font-size: 15px;
+    color: #555;
+    margin-top: 4px;
+  }
+  .card-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 6px;
+    padding: 0 12px;
+  }
+  .flipped .card-word { color: #2481cc; }
+  footer {
+    padding: 14px 16px 20px;
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--secondary-bg);
+    color: var(--text);
+  }
+  button.primary {
+    background: var(--btn);
+    color: var(--btn-text);
+  }
+  .progress {
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span id="progress" class="progress">1 / 1</span>
+  <span id="modeLabel">учить всё</span>
+</header>
+
+<main>
+  <div class="card" id="card">
+    <div class="card-image" id="cardImage"></div>
+    <div class="card-text">
+      <div class="card-word" id="cardWord"></div>
+      <div class="card-translation" id="cardTranslation"></div>
+      <div class="card-hint" id="cardHint"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <button id="prevBtn">← Назад</button>
+  <button id="shuffleBtn">Перемешать</button>
+  <button class="primary" id="nextBtn">Дальше →</button>
+</footer>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  let cards = [];
+  let order = [];
+  let i = 0;
+  let revealed = false;
+
+  const cardEl = document.getElementById('card');
+  const imageEl = document.getElementById('cardImage');
+  const wordEl = document.getElementById('cardWord');
+  const translationEl = document.getElementById('cardTranslation');
+  const hintEl = document.getElementById('cardHint');
+  const progressEl = document.getElementById('progress');
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let k = a.length - 1; k > 0; k--) {
+      const j = Math.floor(Math.random() * (k + 1));
+      [a[k], a[j]] = [a[j], a[k]];
+    }
+    return a;
+  }
+
+  function render() {
+    const idx = order[i];
+    const c = cards[idx];
+    progressEl.textContent = `${i + 1} / ${cards.length}`;
+
+    const imgPath = `images/${c.word.replace(/\s+/g, '_')}.jpg`;
+    imageEl.innerHTML = '';
+    const testImg = new Image();
+    testImg.onload = () => {
+      imageEl.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = imgPath;
+      imageEl.appendChild(img);
+    };
+    testImg.onerror = () => {
+      imageEl.textContent = c.word;
+    };
+    testImg.src = imgPath;
+
+    wordEl.textContent = c.word;
+
+    if (revealed) {
+      translationEl.textContent = c.translation;
+      hintEl.textContent = c.hint;
+      cardEl.classList.add('flipped');
+    } else {
+      translationEl.textContent = 'нажми на карточку';
+      hintEl.textContent = '';
+      cardEl.classList.remove('flipped');
+    }
+  }
+
+  function next() {
+    revealed = false;
+    i = (i + 1) % order.length;
+    render();
+    tg?.HapticFeedback?.impactOccurred('light');
+  }
+
+  function prev() {
+    revealed = false;
+    i = (i - 1 + order.length) % order.length;
+    render();
+    tg?.HapticFeedback?.impactOccurred('light');
+  }
+
+  cardEl.addEventListener('click', () => {
+    revealed = !revealed;
+    render();
+    tg?.HapticFeedback?.impactOccurred('light');
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', next);
+  document.getElementById('prevBtn').addEventListener('click', prev);
+  document.getElementById('shuffleBtn').addEventListener('click', () => {
+    order = shuffle(order);
+    i = 0;
+    revealed = false;
+    render();
+    tg?.HapticFeedback?.notificationOccurred('success');
+  });
+
+  let touchStartX = null;
+  cardEl.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  cardEl.addEventListener('touchend', (e) => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) {
+      dx < 0 ? next() : prev();
+    }
+    touchStartX = null;
+  });
+
+  fetch('cards.json')
+    .then(r => r.json())
+    .then(data => {
+      cards = data;
+      order = shuffle([...cards.keys()]);
+      render();
+    })
+    .catch(() => {
+      wordEl.textContent = 'Ошибка загрузки cards.json';
+    });
+</script>
+
+</body>
+</html>
