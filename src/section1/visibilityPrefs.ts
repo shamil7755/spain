@@ -30,8 +30,34 @@ function loadPrefs(): VisibilityPrefs {
   return cache
 }
 
+type PrefsListener = (prefs: VisibilityPrefs) => void
+
+let prefsListener: PrefsListener | null = null
+
+/** Подписка на сохранение — используется синхронизацией с сервером. */
+export function onPrefsSaved(listener: PrefsListener | null): void {
+  prefsListener = listener
+}
+
+/** Применяет настройки, пришедшие с сервера, без обратной отправки. */
+export function hydrateVisibilityPrefs(raw: unknown): void {
+  if (!raw || typeof raw !== 'object') return
+  const parsed = raw as Partial<VisibilityPrefs>
+  cache = {
+    image: typeof parsed.image === 'boolean' ? parsed.image : DEFAULT_PREFS.image,
+    es: typeof parsed.es === 'boolean' ? parsed.es : DEFAULT_PREFS.es,
+    ru: typeof parsed.ru === 'boolean' ? parsed.ru : DEFAULT_PREFS.ru,
+  }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cache))
+  } catch {
+    // см. savePrefs
+  }
+}
+
 function savePrefs(prefs: VisibilityPrefs): void {
   cache = prefs
+  prefsListener?.(prefs)
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
   } catch {

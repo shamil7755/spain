@@ -55,8 +55,33 @@ function loadState(): ProgressState {
   return cache
 }
 
+type SaveListener = (state: ProgressState) => void
+
+let saveListener: SaveListener | null = null
+
+/** Подписка на сохранение — используется синхронизацией с сервером. */
+export function onProgressSaved(listener: SaveListener | null): void {
+  saveListener = listener
+}
+
+/** Заливает прогресс, пришедший с сервера, поверх локального. */
+export function hydrateProgress(state: unknown): void {
+  if (!state || typeof state !== 'object') return
+  cache = state as ProgressState
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cache))
+  } catch {
+    // см. saveState
+  }
+}
+
+export function snapshotProgress(): ProgressState {
+  return loadState()
+}
+
 function saveState(state: ProgressState): void {
   cache = state
+  saveListener?.(state)
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   } catch {

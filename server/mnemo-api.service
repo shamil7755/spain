@@ -1,0 +1,28 @@
+[Unit]
+Description=Mnemo Cards API + Telegram bot
+After=network-online.target
+Wants=network-online.target
+# Диск проекта монтируется отдельно — без него запускаться незачем
+RequiresMountsFor=/mnt/different-project
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/different-project/mnemo-miniapp/server
+EnvironmentFile=/mnt/different-project/mnemo-env/.env
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=5
+User=root
+
+# Процесс пишет только в свою папку с данными
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/mnt/different-project/mnemo-data
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mnemo-api
+
+[Install]
+WantedBy=multi-user.target
