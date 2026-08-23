@@ -146,6 +146,12 @@ async function handleMessage(msg) {
       return handleUsers(msg)
     case '/revoke':
       return handleRevoke(msg, arg)
+    case '/test':
+      return sendMessage(msg.chat.id, 'Диагностическая страница:', {
+        reply_markup: {
+          inline_keyboard: [[{ text: 'Открыть проверку', web_app: { url: `${APP_URL}/test.html` } }]],
+        },
+      })
     case '/id':
       return sendMessage(msg.chat.id, `Твой chat id: <code>${msg.chat.id}</code>`)
     default:
