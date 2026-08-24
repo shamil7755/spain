@@ -46,15 +46,41 @@ export function getCardImageSrc(lessonNumber: number, es: string, asset?: string
 
 /**
  * Картинки уроков весят по 1–2.5 МБ, и в веб-сборке они качаются по сети, а не зашиты
- * в бандл. Без предзагрузки открытие «глаза» показывает белое поле, пока файл ещё едет,
- * поэтому соседние карточки начинаем тянуть заранее.
+ * в бандл. Без предзагрузки открытие «глаза» показывает белое поле, пока файл ещё едет.
+ *
+ * Качаем строго по одной: параллельные загрузки отбирают канал у картинки, которая нужна
+ * прямо сейчас, а в WebView Telegram число одновременных соединений заметно меньше, чем
+ * в браузере. Очередь идёт до конца урока и не ждёт перелистывания карточек.
  */
 const preloaded = new Set<string>()
 
-export function preloadCardImage(src: string | undefined): void {
-  if (!src || preloaded.has(src)) return
+let queue: string[] = []
+let isLoading = false
+
+function pump(): void {
+  if (isLoading) return
+
+  let next = queue.shift()
+  while (next && preloaded.has(next)) next = queue.shift()
+  if (!next) return
+
+  const src = next
   preloaded.add(src)
+  isLoading = true
+
   const img = new Image()
   img.decoding = 'async'
+  const step = () => {
+    isLoading = false
+    pump()
+  }
+  img.addEventListener('load', step, { once: true })
+  img.addEventListener('error', step, { once: true })
   img.src = src
+}
+
+/** Ставит картинки в очередь предзагрузки в порядке показа; уже скачанные пропускаются. */
+export function queueCardImages(sources: (string | undefined)[]): void {
+  queue = sources.filter((src): src is string => typeof src === 'string' && !preloaded.has(src))
+  pump()
 }

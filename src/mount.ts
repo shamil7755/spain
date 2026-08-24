@@ -34,11 +34,23 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node
 }
 
-export function mountApp(root: HTMLElement): void {
+export type MountOptions = {
+  /** Имя пользователя для шапки — пусто в офлайн-сборке, где входа нет. */
+  userName?: string
+}
+
+export function mountApp(root: HTMLElement, options: MountOptions = {}): void {
   const store = createTabStore('1')
 
   const heading = el('h1')
   const hint = el('p')
+
+  // Шапка: слева заголовок раздела, справа — под кем вошли.
+  const userBadge = el('span', { className: 'app-user-badge' })
+  userBadge.textContent = options.userName ?? ''
+  userBadge.hidden = !options.userName
+
+  const headingRow = el('div', { className: 'app-panel-heading-row' }, [heading, userBadge])
   const body = el('div', { className: 'app-panel-body' })
   const defaultBody = el('div', { className: 'app-card' }, [
     'Карточки появятся здесь',
@@ -48,7 +60,7 @@ export function mountApp(root: HTMLElement): void {
   panel.id = 'panel-main'
   panel.setAttribute('role', 'tabpanel')
   panel.setAttribute('aria-labelledby', 'tab-1')
-  panel.append(heading, hint, body)
+  panel.append(headingRow, hint, body)
 
   const main = el('main', { className: 'app-main' }, [panel])
 
@@ -165,6 +177,7 @@ export function mountApp(root: HTMLElement): void {
     // В блоке 3 заголовок и подсказка не нужны — там сразу начинаются кнопки категорий,
     // остальным вкладкам текст оставляем как есть.
     const showHeader = tab !== '3'
+    headingRow.hidden = !showHeader
     heading.hidden = !showHeader
     hint.hidden = !showHeader
     heading.textContent = showHeader ? panelTitle(tab) : ''

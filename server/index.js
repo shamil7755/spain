@@ -10,6 +10,7 @@ import {
   createSession,
   getSession,
   dropSession,
+  getUser,
   readProgress,
   writeProgress,
   getDataDir,
@@ -154,7 +155,7 @@ async function handle(req, res) {
   if (path === '/api/me' && method === 'GET') {
     const session = requireSession(req, res)
     if (!session) return
-    json(res, 200, { ok: true, userId: session.userId })
+    json(res, 200, { ok: true, userId: session.userId, user: getUser(session.userId) })
     return
   }
 

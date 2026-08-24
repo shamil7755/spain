@@ -25,6 +25,16 @@ const BOT_LINK = import.meta.env.VITE_BOT_LINK ?? 'https://t.me/spainlearning_bo
 
 export type Session = { user: AuthUser | null; offline: boolean }
 
+/** Как подписать пользователя в шапке: имя, иначе @username, иначе ничего. */
+export function displayName(session: Session): string {
+  const fromServer = session.user?.name || session.user?.username
+  if (fromServer) return session.user?.name ?? `@${session.user?.username}`
+
+  const tgUser = telegram()?.initDataUnsafe?.user
+  if (!tgUser) return ''
+  return tgUser.first_name || (tgUser.username ? `@${tgUser.username}` : '')
+}
+
 function screen(root: HTMLElement, className: string): HTMLElement {
   const box = document.createElement('div')
   box.className = `auth-screen ${className}`
@@ -152,7 +162,7 @@ export function ensureAuthorized(root: HTMLElement): Promise<Session> {
       // 1. Уже входили с этого устройства.
       if (getToken()) {
         const me = await fetchMe()
-        if (me.ok) return done(null)
+        if (me.ok) return done(me.data.user)
         if (me.error === 'network') return showError(root, 'Не удалось связаться с сервером.', attempt)
         clearToken()
       }

@@ -21,11 +21,27 @@
   gap: 0.75rem;
 }
 
+.app-panel-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
 .app-panel h1 {
   margin: 0;
   font-size: 1.35rem;
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+/* Под кем вошли. Длинное имя усекается, чтобы не давить на заголовок. */
+.app-user-badge {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
 }
 
 .app-panel p {

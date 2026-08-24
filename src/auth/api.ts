@@ -85,7 +85,7 @@ export function authViaPassword(password: string) {
 }
 
 export function fetchMe() {
-  return request<{ userId: string }>('/api/me')
+  return request<{ userId: string; user: AuthUser | null }>('/api/me')
 }
 
 export function fetchProgress() {

@@ -1,5 +1,5 @@
 import type { WordPair } from './lessons/types'
-import { getCardImageSrc, preloadCardImage } from './cardImages'
+import { getCardImageSrc, queueCardImages } from './cardImages'
 import { getCardAudioSrc, playCardAudio } from './cardAudio'
 import { normalizeWord } from '../shared/wordKey'
 import { getVisibilityPrefs, toggleGlobalFieldVisible, type VisibleField } from './visibilityPrefs'
@@ -589,15 +589,14 @@ export function createLessonStudyView(options: LessonStudyOptions): HTMLElement 
       img.removeAttribute('src')
     }
 
-    // Тянем ближайшие карточки заранее, чтобы к моменту показа они уже были готовы.
-    for (let ahead = 1; ahead <= 3; ahead += 1) {
-      const nextIndex = timeline[cursor + ahead]
-      if (nextIndex === undefined) break
-      const nextWord = words[nextIndex]
-      if (nextWord) {
-        preloadCardImage(getCardImageSrc(nextWord.lessonNumber, nextWord.es, nextWord.asset))
-      }
-    }
+    // Ставим в очередь все оставшиеся карточки урока — грузятся по одной, по порядку.
+    queueCardImages(
+      timeline
+        .slice(cursor + 1)
+        .map((index) => words[index])
+        .filter((word): word is StudyCard => Boolean(word))
+        .map((word) => getCardImageSrc(word.lessonNumber, word.es, word.asset)),
+    )
     renderEs()
     renderRu()
     renderImage()

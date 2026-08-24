@@ -50,6 +50,10 @@ export function isAllowed(userId) {
   return Boolean(listAllowedUsers()[userId])
 }
 
+export function getUser(userId) {
+  return listAllowedUsers()[userId] ?? null
+}
+
 export function allowUser(userId, profile) {
   const users = listAllowedUsers()
   users[userId] = {
