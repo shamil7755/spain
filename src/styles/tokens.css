@@ -11,6 +11,8 @@
   --color-accent-soft: rgba(108, 158, 255, 0.18);
   --nav-height: 56px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* В PWA-режиме на iPhone контент уходит под статус-бар — этот отступ его возвращает. */
+  --safe-top: env(safe-area-inset-top, 0px);
   --radius: 14px;
   --shadow-nav: 0 -4px 24px rgba(0, 0, 0, 0.35);
 }

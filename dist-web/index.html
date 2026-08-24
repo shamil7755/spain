@@ -6,10 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#171a21" />
     <meta name="description" content="Мнемонические карточки для изучения слов" />
+
+    <!--
+      PWA: «Поделиться → На экран „Домой"» запускает приложение без строк браузера,
+      то есть на весь экран. На iOS это единственный способ полного экрана: все
+      тамошние браузеры на WebKit, а он не поддерживает Fullscreen API для страниц.
+      В Telegram работает свой нативный requestFullscreen — там эти теги не нужны.
+    -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Карточки" />
+    <link rel="apple-touch-icon" href="./icon-180.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+
     <title>Карточки слов</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script type="module" crossorigin src="./assets/index-GCgPtvJ-.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Boxogr_F.css">
+    <script type="module" crossorigin src="./assets/index-BVHKVxC7.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BJVLY5qB.css">
   </head>
   <body>
     <div id="app"></div>
