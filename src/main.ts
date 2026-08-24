@@ -10,7 +10,16 @@ if (!root) {
   throw new Error('#app не найден')
 }
 
+declare global {
+  interface Window {
+    __appBooted?: boolean
+  }
+}
+
 async function start(host: HTMLElement): Promise<void> {
+  // Снимаем страховку из index.html: модуль доехал и выполняется.
+  window.__appBooted = true
+
   // Полный экран и отступы просим сразу: иначе заглушка успевает моргнуть в окне обычного размера.
   setupTelegramUi()
 
