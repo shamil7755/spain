@@ -43,3 +43,18 @@ export function getCardImageSrc(lessonNumber: number, es: string, asset?: string
   const perLesson = BY_LESSON_AND_STEM[`${lessonFolderKey(lessonNumber)}/${key}`]
   return perLesson ?? BY_STEM[key]
 }
+
+/**
+ * Картинки уроков весят по 1–2.5 МБ, и в веб-сборке они качаются по сети, а не зашиты
+ * в бандл. Без предзагрузки открытие «глаза» показывает белое поле, пока файл ещё едет,
+ * поэтому соседние карточки начинаем тянуть заранее.
+ */
+const preloaded = new Set<string>()
+
+export function preloadCardImage(src: string | undefined): void {
+  if (!src || preloaded.has(src)) return
+  preloaded.add(src)
+  const img = new Image()
+  img.decoding = 'async'
+  img.src = src
+}

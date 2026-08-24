@@ -1,5 +1,5 @@
 import type { WordPair } from './lessons/types'
-import { getCardImageSrc } from './cardImages'
+import { getCardImageSrc, preloadCardImage } from './cardImages'
 import { getCardAudioSrc, playCardAudio } from './cardAudio'
 import { normalizeWord } from '../shared/wordKey'
 import { getVisibilityPrefs, toggleGlobalFieldVisible, type VisibleField } from './visibilityPrefs'
@@ -153,6 +153,11 @@ export function createLessonStudyView(options: LessonStudyOptions): HTMLElement 
   img.alt = ''
   img.decoding = 'async'
   img.loading = 'eager'
+
+  // Пока файл качается, показываем крутилку: иначе открытый «глаз» выглядит
+  // как пустая белая карточка, и непонятно, грузится она или сломана.
+  img.addEventListener('load', () => imgWrap.classList.remove('is-loading'))
+  img.addEventListener('error', () => imgWrap.classList.remove('is-loading'))
 
   const imgPlaceholder = document.createElement('div')
   imgPlaceholder.className = 'lesson-study-hidden-field lesson-study-hidden-field--image'
@@ -573,9 +578,25 @@ export function createLessonStudyView(options: LessonStudyOptions): HTMLElement 
     hintToggle.disabled = !hint
 
     if (currentImgSrc) {
-      img.src = currentImgSrc
+      if (img.src !== currentImgSrc) {
+        imgWrap.classList.add('is-loading')
+        img.src = currentImgSrc
+      }
+      // Картинка уже в кеше — крутилку показывать незачем.
+      if (img.complete && img.naturalWidth > 0) imgWrap.classList.remove('is-loading')
     } else {
+      imgWrap.classList.remove('is-loading')
       img.removeAttribute('src')
+    }
+
+    // Тянем ближайшие карточки заранее, чтобы к моменту показа они уже были готовы.
+    for (let ahead = 1; ahead <= 3; ahead += 1) {
+      const nextIndex = timeline[cursor + ahead]
+      if (nextIndex === undefined) break
+      const nextWord = words[nextIndex]
+      if (nextWord) {
+        preloadCardImage(getCardImageSrc(nextWord.lessonNumber, nextWord.es, nextWord.asset))
+      }
     }
     renderEs()
     renderRu()
