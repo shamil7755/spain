@@ -1,5 +1,6 @@
 import { TAB_IDS, createTabStore, type TabId } from './nav'
 import { panelHint, panelTitle } from './content'
+import { addToHomeScreen, checkHomeScreen } from './auth/telegramUi'
 import { createSection1TopicList } from './section1/render'
 import { createSection3Categories } from './section3/render'
 import { getLessonWords } from './section1'
@@ -50,6 +51,26 @@ export function mountApp(root: HTMLElement, options: MountOptions = {}): void {
   userBadge.textContent = options.userName ?? ''
   userBadge.hidden = !options.userName
 
+  // Ярлык на главный экран: кнопку показываем, только если клиент это умеет и ярлыка ещё нет.
+  const homeBtn = el('button', { type: 'button', className: 'app-home-btn' })
+  homeBtn.textContent = 'На главный экран'
+  homeBtn.hidden = true
+
+  let canAddToHome = false
+  function syncHomeBtn(): void {
+    homeBtn.hidden = !canAddToHome || store.get() !== '1'
+  }
+
+  homeBtn.addEventListener('click', () => {
+    addToHomeScreen()
+    canAddToHome = false
+    syncHomeBtn()
+  })
+  checkHomeScreen((canAdd) => {
+    canAddToHome = canAdd
+    syncHomeBtn()
+  })
+
   const headingRow = el('div', { className: 'app-panel-heading-row' }, [heading, userBadge])
   const body = el('div', { className: 'app-panel-body' })
   const defaultBody = el('div', { className: 'app-card' }, [
@@ -60,7 +81,7 @@ export function mountApp(root: HTMLElement, options: MountOptions = {}): void {
   panel.id = 'panel-main'
   panel.setAttribute('role', 'tabpanel')
   panel.setAttribute('aria-labelledby', 'tab-1')
-  panel.append(headingRow, hint, body)
+  panel.append(headingRow, hint, homeBtn, body)
 
   const main = el('main', { className: 'app-main' }, [panel])
 
@@ -177,6 +198,7 @@ export function mountApp(root: HTMLElement, options: MountOptions = {}): void {
     // В блоке 3 заголовок и подсказка не нужны — там сразу начинаются кнопки категорий,
     // остальным вкладкам текст оставляем как есть.
     const showHeader = tab !== '3'
+    syncHomeBtn()
     headingRow.hidden = !showHeader
     heading.hidden = !showHeader
     hint.hidden = !showHeader
