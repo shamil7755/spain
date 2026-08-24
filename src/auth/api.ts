@@ -48,11 +48,23 @@ export function clearToken(): void {
 
 type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string }
 
-async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T>> {
+/** Ждать вечно нельзя: на плохой связи fetch зависает, и пользователь смотрит на заглушку. */
+const REQUEST_TIMEOUT_MS = 15000
+const RETRY_DELAYS_MS = [400, 1200]
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function attempt<T>(path: string, init?: RequestInit): Promise<ApiResult<T>> {
   const token = getToken()
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
   try {
     const res = await fetch(path, {
       ...init,
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -67,7 +79,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T
     return { ok: true, data: payload as T }
   } catch {
     return { ok: false, status: 0, error: 'network' }
+  } finally {
+    clearTimeout(timer)
   }
+}
+
+/**
+ * Через VPN и на мобильной связи соединение рвётся то и дело, а одна неудачная попытка
+ * сразу выкидывала пользователя на экран ошибки. Повторяем только сетевые сбои: ответ
+ * сервера с отказом (неверный пароль, нет доступа) повторять бессмысленно.
+ *
+ * Ввод пароля не повторяем: код одноразовый, и если запрос всё же дошёл, второй попытке
+ * достанется уже погашенный код.
+ */
+async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T>> {
+  const retryable = path !== '/api/auth/password'
+
+  let result = await attempt<T>(path, init)
+  if (!retryable) return result
+
+  for (const delay of RETRY_DELAYS_MS) {
+    if (result.ok || result.error !== 'network') return result
+    await sleep(delay)
+    result = await attempt<T>(path, init)
+  }
+
+  return result
 }
 
 export function authViaTelegram(initData: string) {
